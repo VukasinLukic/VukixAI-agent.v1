@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moj Raspored</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ===== LIJEVA STRANA - PREDMETI ===== */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .sidebar-card h2 {
+            color: #4a4a8a;
+            font-size: 1rem;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .add-subject-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .add-subject-form input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 2px solid #e0e0f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-subject-form input:focus {
+            border-color: #667eea;
+        }
+
+        .btn-add-subject {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add-subject:hover {
+            background: #5563d4;
+            transform: scale(1.05);
+        }
+
+        .subject-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .subject-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: grab;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.15s, box-shadow 0.15s;
+            user-select: none;
+        }
+
+        .subject-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .subject-item:active {
+            cursor: grabbing;
+        }
+
+        .subject-item .delete-subject {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0 2px;
+            transition: color 0.2s;
+        }
+
+        .subject-item .delete-subject:hover {
+            color: white;
+        }
+
+        /* Boje predmeta */
+        .color-0 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .color-1 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .color-2 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .color-3 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .color-4 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .color-5 { background: linear-gradient(135deg, #fda085, #f6d365); }
+        .color-6 { background: linear-gradient(135deg, #89f7fe, #66a6ff); }
+        .color-7 { background: linear-gradient(135deg, #fddb92, #d1fdff); }
+
+        /* ===== DESNA STRANA - RASPORED ===== */
+        .schedule-area {
+            flex: 1;
+        }
+
+        .schedule-grid {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+
+        .days-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 700;
+            color: #4a4a8a;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px;
+            background: #f0f0ff;
+            border-radius: 10px;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .day-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slot {
+            min-height: 70px;
+            border: 2px dashed #d0d0e8;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c0c0d8;
+            font-size: 0.75rem;
+            transition: border-color 0.2s, background 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .slot:hover {
+            border-color: #667eea;
+            background: #f5f5ff;
+            color: #667eea;
+        }
+
+        .slot.drag-over {
+            border-color: #667eea;
+            background: #ebebff;
+        }
+
+        .slot.filled {
+            border: none;
+            cursor: default;
+        }
+
+        .slot-subject {
+            width: 100%;
+            height: 100%;
+            min-height: 70px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: white;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .slot-subject .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1;
+            display: none;
+        }
+
+        .slot.filled:hover .remove-btn {
+            display: block;
+        }
+
+        .add-slot-btn {
+            min-height: 40px;
+            border: 2px dashed #e0e0f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c0c0d8;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-slot-btn:hover {
+            border-color: #667eea;
+            background: #f5f5ff;
+            color: #667eea;
+        }
+
+        /* ===== ODABIR PREDMETA MODAL ===== */
+        .picker-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .picker-overlay.active {
+            display: flex;
+        }
+
+        .picker-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            min-width: 280px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25);
+        }
+
+        .picker-card h3 {
+            color: #4a4a8a;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+
+        .picker-subjects {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .picker-subject-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+
+        .picker-subject-btn:hover {
+            transform: translateX(4px);
+            opacity: 0.9;
+        }
+
+        .picker-cancel {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0f0;
+            border-radius: 10px;
+            background: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .picker-cancel:hover {
+            border-color: #999;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer-btns {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn-clear {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+        @media (max-width: 700px) {
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Moj Raspored</h1>
+
+    <div class="main-layout">
+        <!-- LIJEVA STRANA -->
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <h2>Predmeti</h2>
+                <div class="add-subject-form">
+                    <input type="text" id="newSubjectInput" placeholder="Naziv predmeta..." />
+                    <button class="btn-add-subject" onclick="addSubject()">+</button>
+                </div>
+                <div class="subject-list" id="subjectList"></div>
+            </div>
+        </div>
+
+        <!-- DESNA STRANA -->
+        <div class="schedule-area">
+            <div class="schedule-grid">
+                <div class="days-header">
+                    <div class="day-header">Ponedjeljak</div>
+                    <div class="day-header">Utorak</div>
+                    <div class="day-header">Srijeda</div>
+                    <div class="day-header">Četvrtak</div>
+                    <div class="day-header">Petak</div>
+                </div>
+                <div class="slots-grid" id="slotsGrid">
+                    <!-- 5 kolona, po jedna po danu -->
+                    <div class="day-column" id="day-0"></div>
+                    <div class="day-column" id="day-1"></div>
+                    <div class="day-column" id="day-2"></div>
+                    <div class="day-column" id="day-3"></div>
+                    <div class="day-column" id="day-4"></div>
+                </div>
+            </div>
+
+            <div class="footer-btns">
+                <button class="btn-clear" onclick="clearSchedule()">🗑 Očisti raspored</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PICKER OVERLAY -->
+    <div class="picker-overlay" id="pickerOverlay">
+        <div class="picker-card">
+            <h3>Odaberi predmet</h3>
+            <div class="picker-subjects" id="pickerSubjects"></div>
+            <button class="picker-cancel" onclick="closePicker()">Otkaži</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        const DAYS = 5;
+        const INITIAL_SLOTS = 6; // početni broj slotova po danu
+
+        let subjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+        let schedule = JSON.parse(localStorage.getItem('schedule') || 'null');
+        let slotCounts = JSON.parse(localStorage.getItem('slotCounts') || 'null');
+
+        // Defaultni predmeti ako je prazno
+        if (subjects.length === 0) {
+            subjects = ['Matematika', 'Fizika', 'Hemija', 'Biologija', 'Historija', 'Engleski'];
+        }
+
+        if (!schedule) {
+            schedule = Array.from({length: DAYS}, () => Array(INITIAL_SLOTS).fill(null));
+        }
+
+        if (!slotCounts) {
+            slotCounts = Array(DAYS).fill(INITIAL_SLOTS);
+        }
+
+        // Prikupi slotCounts iz schedule duzine
+        for (let d = 0; d < DAYS; d++) {
+            if (!schedule[d]) schedule[d] = Array(slotCounts[d]).fill(null);
+        }
+
+        let pendingSlot = null; // { day, slot }
+
+        // --- RENDER PREDMETA ---
+        function renderSubjects() {
+            const list = document.getElementById('subjectList');
+            list.innerHTML = '';
+            subjects.forEach((name, idx) => {
+                const colorClass = 'color-' + (idx % 8);
+                const item = document.createElement('div');
+                item.className = 'subject-item ' + colorClass;
+                item.innerHTML = `
+                    <span>${name}</span>
+                    <button class="delete-subject" onclick="deleteSubject(${idx})" title="Obriši predmet">×</button>
+                `;
+                list.appendChild(item);
+            });
+            save();
+        }
+
+        function addSubject() {
+            const input = document.getElementById('newSubjectInput');
+            const name = input.value.trim();
+            if (!name) return;
+            if (subjects.includes(name)) {
+                input.select();
+                return;
+            }
+            subjects.push(name);
+            input.value = '';
+            renderSubjects();
+        }
+
+        function deleteSubject(idx) {
+            const name = subjects[idx];
+            // Ukloni iz rasporeda
+            for (let d = 0; d < DAYS; d++) {
+                for (let s = 0; s < schedule[d].length; s++) {
+                    if (schedule[d][s] === name) schedule[d][s] = null;
+                }
+            }
+            subjects.splice(idx, 1);
+            renderSubjects();
+            renderSchedule();
+        }
+
+        // --- RENDER RASPOREDA ---
+        function renderSchedule() {
+            for (let d = 0; d < DAYS; d++) {
+                const col = document.getElementById('day-' + d);
+                col.innerHTML = '';
+
+                for (let s = 0; s < schedule[d].length; s++) {
+                    const subject = schedule[d][s];
+                    const slot = document.createElement('div');
+
+                    if (subject) {
+                        const subjectIdx = subjects.indexOf(subject);
+                        const colorClass = subjectIdx >= 0 ? 'color-' + (subjectIdx % 8) : 'color-0';
+                        slot.className = 'slot filled';
+                        slot.innerHTML = `
+                            <div class="slot-subject ${colorClass}">
+                                ${subject}
+                                <button class="remove-btn" onclick="removeFromSlot(${d},${s})" title="Ukloni">×</button>
+                            </div>
+                        `;
+                    } else {
+                        slot.className = 'slot';
+                        slot.textContent = '+ dodaj';
+                        slot.onclick = () => openPicker(d, s);
+
+                        slot.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            slot.classList.add('drag-over');
+                        });
+                        slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+                        slot.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            slot.classList.remove('drag-over');
+                            const name = e.dataTransfer.getData('text/plain');
+                            if (name) {
+                                schedule[d][s] = name;
+                                save();
+                                renderSchedule();
+                            }
+                        });
+                    }
+                    col.appendChild(slot);
+                }
+
+                // "Dodaj red" dugme
+                const addBtn = document.createElement('div');
+                addBtn.className = 'add-slot-btn';
+                addBtn.textContent = '+';
+                addBtn.title = 'Dodaj čas';
+                addBtn.onclick = () => addSlot(d);
+                col.appendChild(addBtn);
+            }
+            save();
+        }
+
+        function addSlot(day) {
+            schedule[day].push(null);
+            renderSchedule();
+        }
+
+        function removeFromSlot(day, slot) {
+            schedule[day][slot] = null;
+            save();
+            renderSchedule();
+        }
+
+        // --- PICKER ---
+        function openPicker(day, slot) {
+            if (subjects.length === 0) {
+                alert('Dodajte predmete u lijevu listu!');
+                return;
+            }
+            pendingSlot = { day, slot };
+            const container = document.getElementById('pickerSubjects');
+            container.innerHTML = '';
+            subjects.forEach((name, idx) => {
+                const colorClass = 'color-' + (idx % 8);
+                const btn = document.createElement('button');
+                btn.className = 'picker-subject-btn ' + colorClass;
+                btn.textContent = name;
+                btn.onclick = () => selectSubject(name);
+                container.appendChild(btn);
+            });
+            document.getElementById('pickerOverlay').classList.add('active');
+        }
+
+        function selectSubject(name) {
+            if (pendingSlot) {
+                schedule[pendingSlot.day][pendingSlot.slot] = name;
+                pendingSlot = null;
+                save();
+                renderSchedule();
+            }
+            closePicker();
+        }
+
+        function closePicker() {
+            document.getElementById('pickerOverlay').classList.remove('active');
+            pendingSlot = null;
+        }
+
+        // Zatvori picker klikom izvan
+        document.getElementById('pickerOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closePicker();
+        });
+
+        // Enter za dodavanje predmeta
+        document.getElementById('newSubjectInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addSubject();
+        });
+
+        // --- CLEAR ---
+        function clearSchedule() {
+            if (!confirm('Očistiti cijeli raspored?')) return;
+            schedule = Array.from({length: DAYS}, () => Array(INITIAL_SLOTS).fill(null));
+            save();
+            renderSchedule();
+        }
+
+        // --- SAVE ---
+        function save() {
+            localStorage.setItem('subjects', JSON.stringify(subjects));
+            localStorage.setItem('schedule', JSON.stringify(schedule));
+        }
+
+        // --- INIT ---
+        renderSubjects();
+        renderSchedule();
+    </script>
+</body>
+</html>

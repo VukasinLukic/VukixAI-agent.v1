@@ -1,0 +1,1 @@
+<h1>Project Documentation Summary</h1><p>This document outlines the project and explains why Claw Code was chosen. Claw Code provides a straightforward syntax for defining tools and their functions, offering flexibility, scalability, and interactivity. It enables developers to focus on core logic while automating file operations and shell commands.</p>
